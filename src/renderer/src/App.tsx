@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  defaultMonthRange,
+  monthRangeFrom,
   daysInMonth,
   isWeekday,
   monthLabel,
@@ -14,6 +14,7 @@ import { buildWorkbookBytes } from './exportExcel'
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const EXPORT_PATH_KEY = 'exportDir'
+const START_DATE_KEY = 'startDate'
 
 function useWorkedSet() {
   const [worked, setWorked] = useState<Set<string>>(new Set())
@@ -58,13 +59,19 @@ function useWorkedSet() {
   return { worked, ready, toggle }
 }
 
-function buildUndoneDays(worked: Set<string>, months: YearMonth[], today: string): Set<string> {
+function buildUndoneDays(
+  worked: Set<string>,
+  months: YearMonth[],
+  today: string,
+  startDate?: string
+): Set<string> {
   const undone = new Set<string>()
   for (const { year, month } of months) {
     const dim = daysInMonth(year, month)
     for (let d = 1; d <= dim; d++) {
       const dt = new Date(year, month, d)
       const iso = toISODateLocal(dt)
+      if (startDate && iso < startDate) continue
       if (iso >= today) continue
       if (worked.has(iso)) continue
       if (!isWeekday(dt)) continue
@@ -175,20 +182,33 @@ function MonthBlock({
 export default function App() {
   const { worked, ready, toggle } = useWorkedSet()
   const today = todayISO()
-  const months = useMemo(() => defaultMonthRange(), [])
+  const [startDate, setStartDate] = useState<string | undefined>(undefined)
+  const [settingsReady, setSettingsReady] = useState(false)
   const exportDirRef = useRef<string | null>(null)
-  const [exportDirLoaded, setExportDirLoaded] = useState(false)
 
   useEffect(() => {
     window.api.loadSettings().then((s) => {
       if (typeof s[EXPORT_PATH_KEY] === 'string') {
         exportDirRef.current = s[EXPORT_PATH_KEY] as string
       }
-      setExportDirLoaded(true)
+      if (typeof s[START_DATE_KEY] === 'string') {
+        setStartDate(s[START_DATE_KEY] as string)
+      }
+      setSettingsReady(true)
     })
   }, [])
 
-  const undone = useMemo(() => buildUndoneDays(worked, months, today), [worked, months, today])
+  const months = useMemo(() => monthRangeFrom(startDate), [startDate])
+  const undone = useMemo(
+    () => buildUndoneDays(worked, months, today, startDate),
+    [worked, months, today, startDate]
+  )
+
+  const handleStartDateChange = async (value: string) => {
+    const next = value || undefined
+    setStartDate(next)
+    await window.api.saveSetting(START_DATE_KEY, next ?? null)
+  }
 
   const totalDays = worked.size
   const totalEur = totalDays * EUR_PER_DAY
@@ -216,7 +236,7 @@ export default function App() {
     }
   }
 
-  if (!ready) {
+  if (!ready || !settingsReady) {
     return (
       <div className="app shell">
         <p className="muted">Loading…</p>
@@ -236,14 +256,21 @@ export default function App() {
           <h1 className="app-title">Time Tracker</h1>
           <p className="app-sub">Freelance days · {EUR_PER_DAY} €/day</p>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={handleExport}
-          disabled={!exportDirLoaded}
-        >
-          Export Excel
-        </button>
+        <div className="top-bar-actions">
+          <label className="start-date-label">
+            <span className="start-date-text">Start date</span>
+            <input
+              type="date"
+              className="start-date-input"
+              value={startDate ?? ''}
+              max={today}
+              onChange={(e) => handleStartDateChange(e.target.value)}
+            />
+          </label>
+          <button type="button" className="btn btn-primary" onClick={handleExport}>
+            Export Excel
+          </button>
+        </div>
       </header>
 
       <section className="dashboard">

@@ -68,6 +68,43 @@ body {
   color: var(--muted);
 }
 
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.start-date-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.start-date-text {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.start-date-input {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.start-date-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
 .btn {
   font: inherit;
   cursor: pointer;

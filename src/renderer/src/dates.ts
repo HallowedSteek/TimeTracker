@@ -40,9 +40,16 @@ export function monthsFromTo(start: YearMonth, end: YearMonth): YearMonth[] {
   return out
 }
 
-export function defaultMonthRange(): YearMonth[] {
+export function monthRangeFrom(startISO?: string): YearMonth[] {
   const end = new Date()
-  const start = new Date(end.getFullYear() - 2, end.getMonth(), 1)
+  let start: Date
+  if (startISO) {
+    const [y, m] = startISO.split('-').map(Number)
+    start = new Date(y, m - 1, 1)
+  } else {
+    start = new Date(end.getFullYear() - 2, end.getMonth(), 1)
+  }
+  if (start > end) return [{ year: end.getFullYear(), month: end.getMonth() }]
   return monthsFromTo(
     { year: start.getFullYear(), month: start.getMonth() },
     { year: end.getFullYear(), month: end.getMonth() }
