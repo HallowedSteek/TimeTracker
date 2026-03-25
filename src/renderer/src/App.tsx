@@ -184,6 +184,7 @@ export default function App() {
   const today = todayISO()
   const [startDate, setStartDate] = useState<string | undefined>(undefined)
   const [settingsReady, setSettingsReady] = useState(false)
+  const [autoLaunch, setAutoLaunch] = useState(false)
   const exportDirRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -196,6 +197,7 @@ export default function App() {
       }
       setSettingsReady(true)
     })
+    window.api.getAutoLaunch().then(setAutoLaunch)
   }, [])
 
   const months = useMemo(() => monthRangeFrom(startDate), [startDate])
@@ -208,6 +210,11 @@ export default function App() {
     const next = value || undefined
     setStartDate(next)
     await window.api.saveSetting(START_DATE_KEY, next ?? null)
+  }
+
+  const handleAutoLaunchChange = async (checked: boolean) => {
+    setAutoLaunch(checked)
+    await window.api.setAutoLaunch(checked)
   }
 
   const totalDays = worked.size
@@ -266,6 +273,18 @@ export default function App() {
               max={today}
               onChange={(e) => handleStartDateChange(e.target.value)}
             />
+          </label>
+          <label className="autolaunch-label">
+            <span className="autolaunch-text">Start with OS</span>
+            <div className="toggle-wrapper">
+              <input
+                type="checkbox"
+                className="toggle-input"
+                checked={autoLaunch}
+                onChange={(e) => handleAutoLaunchChange(e.target.checked)}
+              />
+              <span className="toggle-slider" />
+            </div>
           </label>
           <button type="button" className="btn btn-primary" onClick={handleExport}>
             Export Excel

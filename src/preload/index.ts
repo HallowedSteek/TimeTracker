@@ -13,7 +13,10 @@ const api = {
     ipcRenderer.invoke('file:save-buffer-to-path', filePath, buffer),
   loadSettings: (): Promise<Record<string, unknown>> => ipcRenderer.invoke('settings:load'),
   saveSetting: (key: string, value: unknown): Promise<void> =>
-    ipcRenderer.invoke('settings:save', key, value)
+    ipcRenderer.invoke('settings:save', key, value),
+  getAutoLaunch: (): Promise<boolean> => ipcRenderer.invoke('autolaunch:get'),
+  setAutoLaunch: (enabled: boolean): Promise<void> =>
+    ipcRenderer.invoke('autolaunch:set', enabled)
 }
 
 if (process.contextIsolated) {

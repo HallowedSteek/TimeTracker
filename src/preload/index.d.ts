@@ -16,6 +16,8 @@ declare global {
       ) => Promise<{ ok: boolean; filePath?: string }>
       loadSettings: () => Promise<Record<string, unknown>>
       saveSetting: (key: string, value: unknown) => Promise<void>
+      getAutoLaunch: () => Promise<boolean>
+      setAutoLaunch: (enabled: boolean) => Promise<void>
     }
   }
 }
