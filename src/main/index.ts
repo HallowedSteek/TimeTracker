@@ -159,6 +159,11 @@ app.whenReady().then(() => {
     app.setLoginItemSettings({ openAtLogin: enabled })
   })
 
+  ipcMain.handle('shell:open-data-folder', async () => {
+    const err = await shell.openPath(app.getPath('userData'))
+    return err ? { ok: false as const, error: err } : { ok: true as const }
+  })
+
   createWindow()
 
   sendDailyReminder()

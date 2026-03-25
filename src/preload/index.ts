@@ -16,7 +16,9 @@ const api = {
     ipcRenderer.invoke('settings:save', key, value),
   getAutoLaunch: (): Promise<boolean> => ipcRenderer.invoke('autolaunch:get'),
   setAutoLaunch: (enabled: boolean): Promise<void> =>
-    ipcRenderer.invoke('autolaunch:set', enabled)
+    ipcRenderer.invoke('autolaunch:set', enabled),
+  openDataFolder: (): Promise<{ ok: boolean; error?: string }> =>
+    ipcRenderer.invoke('shell:open-data-folder')
 }
 
 if (process.contextIsolated) {

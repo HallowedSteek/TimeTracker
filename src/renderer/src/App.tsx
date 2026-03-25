@@ -306,7 +306,13 @@ export default function App() {
             {totalDays} days ·{' '}
             {totalEur.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}
           </strong>
-          <span className="dash-hint">Stored in CSV under your profile folder</span>
+          <button
+            type="button"
+            className="dash-hint dash-hint-link"
+            onClick={() => void window.api.openDataFolder()}
+          >
+            Stored in CSV under your profile folder
+          </button>
         </div>
       </section>
 

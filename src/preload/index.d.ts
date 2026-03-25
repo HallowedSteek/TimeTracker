@@ -18,6 +18,7 @@ declare global {
       saveSetting: (key: string, value: unknown) => Promise<void>
       getAutoLaunch: () => Promise<boolean>
       setAutoLaunch: (enabled: boolean) => Promise<void>
+      openDataFolder: () => Promise<{ ok: boolean; error?: string }>
     }
   }
 }
