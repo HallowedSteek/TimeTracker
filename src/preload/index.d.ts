@@ -10,6 +10,12 @@ declare global {
         defaultName: string,
         buffer: ArrayBuffer
       ) => Promise<{ ok: boolean; filePath?: string }>
+      saveFileToPath: (
+        filePath: string,
+        buffer: ArrayBuffer
+      ) => Promise<{ ok: boolean; filePath?: string }>
+      loadSettings: () => Promise<Record<string, unknown>>
+      saveSetting: (key: string, value: unknown) => Promise<void>
     }
   }
 }

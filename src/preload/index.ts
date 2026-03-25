@@ -5,7 +5,15 @@ const api = {
   loadWorked: (): Promise<string[]> => ipcRenderer.invoke('worked:load'),
   saveWorked: (dates: string[]): Promise<void> => ipcRenderer.invoke('worked:save', dates),
   saveFile: (defaultName: string, buffer: ArrayBuffer): Promise<{ ok: boolean; filePath?: string }> =>
-    ipcRenderer.invoke('file:save-buffer', defaultName, buffer)
+    ipcRenderer.invoke('file:save-buffer', defaultName, buffer),
+  saveFileToPath: (
+    filePath: string,
+    buffer: ArrayBuffer
+  ): Promise<{ ok: boolean; filePath?: string }> =>
+    ipcRenderer.invoke('file:save-buffer-to-path', filePath, buffer),
+  loadSettings: (): Promise<Record<string, unknown>> => ipcRenderer.invoke('settings:load'),
+  saveSetting: (key: string, value: unknown): Promise<void> =>
+    ipcRenderer.invoke('settings:save', key, value)
 }
 
 if (process.contextIsolated) {

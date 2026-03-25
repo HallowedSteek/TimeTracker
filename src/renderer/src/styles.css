@@ -7,6 +7,8 @@
   --border: #e5e7eb;
   --accent: #15803d;
   --accent-soft: #dcfce7;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
   --radius: 12px;
   font-family:
     system-ui,
@@ -29,7 +31,7 @@ body {
 }
 
 .app {
-  max-width: 880px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 28px 24px 48px;
 }
@@ -64,6 +66,43 @@ body {
   margin: 4px 0 0;
   font-size: 0.9rem;
   color: var(--muted);
+}
+
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.start-date-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.start-date-text {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.start-date-input {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.start-date-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
 }
 
 .btn {
@@ -124,6 +163,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 22px;
+}
+
+.month-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
 
 .month-card {
@@ -221,6 +266,17 @@ body {
 
 .day-btn--worked:hover:not(:disabled) {
   background: #bbf7d0;
+}
+
+.day-btn--undone {
+  background: var(--danger-soft);
+  border-color: #fca5a5;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.day-btn--undone:hover:not(:disabled) {
+  background: #fecaca;
 }
 
 .day-btn--future {
