@@ -7,6 +7,8 @@
   --border: #e5e7eb;
   --accent: #15803d;
   --accent-soft: #dcfce7;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
   --radius: 12px;
   font-family:
     system-ui,
@@ -29,7 +31,7 @@ body {
 }
 
 .app {
-  max-width: 880px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 28px 24px 48px;
 }
@@ -124,6 +126,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 22px;
+}
+
+.month-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
 
 .month-card {
@@ -221,6 +229,17 @@ body {
 
 .day-btn--worked:hover:not(:disabled) {
   background: #bbf7d0;
+}
+
+.day-btn--undone {
+  background: var(--danger-soft);
+  border-color: #fca5a5;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.day-btn--undone:hover:not(:disabled) {
+  background: #fecaca;
 }
 
 .day-btn--future {

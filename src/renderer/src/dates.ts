@@ -49,6 +49,12 @@ export function defaultMonthRange(): YearMonth[] {
   )
 }
 
+/** Returns true if the given date falls on Monday–Friday. */
+export function isWeekday(d: Date): boolean {
+  const day = d.getDay()
+  return day >= 1 && day <= 5
+}
+
 export function monthLabel(year: number, month: number, locale?: string): string {
   return new Date(year, month, 1).toLocaleString(locale ?? undefined, {
     month: 'long',

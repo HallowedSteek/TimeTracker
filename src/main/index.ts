@@ -1,14 +1,36 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
 const DATA_FILE = 'worked-days.csv'
+const SETTINGS_FILE = 'settings.json'
 
 function dataPath(): string {
   return join(app.getPath('userData'), DATA_FILE)
+}
+
+function settingsPath(): string {
+  return join(app.getPath('userData'), SETTINGS_FILE)
+}
+
+async function loadSettings(): Promise<Record<string, unknown>> {
+  const p = settingsPath()
+  if (!existsSync(p)) return {}
+  try {
+    const raw = await readFile(p, 'utf-8')
+    return JSON.parse(raw)
+  } catch {
+    return {}
+  }
+}
+
+async function saveSetting(key: string, value: unknown): Promise<void> {
+  const settings = await loadSettings()
+  settings[key] = value
+  await writeFile(settingsPath(), JSON.stringify(settings, null, 2), 'utf-8')
 }
 
 async function loadWorkedDates(): Promise<string[]> {
@@ -92,6 +114,19 @@ app.whenReady().then(() => {
       return { ok: true as const, filePath }
     }
   )
+
+  ipcMain.handle(
+    'file:save-buffer-to-path',
+    async (_, filePath: string, buffer: ArrayBuffer) => {
+      const dir = dirname(filePath)
+      if (!existsSync(dir)) await mkdir(dir, { recursive: true })
+      await writeFile(filePath, Buffer.from(buffer))
+      return { ok: true as const, filePath }
+    }
+  )
+
+  ipcMain.handle('settings:load', () => loadSettings())
+  ipcMain.handle('settings:save', (_, key: string, value: unknown) => saveSetting(key, value))
 
   createWindow()
 
