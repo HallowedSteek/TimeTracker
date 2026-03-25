@@ -21,6 +21,8 @@ export function buildWorkbookBytes(dates: string[]): ArrayBuffer {
   const wsSum = XLSX.utils.aoa_to_sheet(summary)
   XLSX.utils.book_append_sheet(wb, wsSum, 'Summary')
 
-  const u8 = XLSX.write(wb, { bookType: 'xlsx', type: 'array' }) as Uint8Array
+  const result = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+  if (result instanceof ArrayBuffer) return result
+  const u8 = result as Uint8Array
   return u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength)
 }
