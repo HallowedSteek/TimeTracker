@@ -1,0 +1,27 @@
+appId: com.timetracker.app
+productName: Time Tracker
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+  - resources/**/*
+asarUnpack:
+  - resources/**
+win:
+  # Avoids winCodeSign extraction (symlinks) that fails without Developer Mode / admin on some PCs.
+  signAndEditExecutable: false
+  target:
+    - target: portable
+      arch:
+        - x64
+    - target: nsis
+      arch:
+        - x64
+  icon: resources/icon.png
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
