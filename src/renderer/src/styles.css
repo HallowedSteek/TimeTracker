@@ -105,6 +105,69 @@ body {
   outline-offset: -1px;
 }
 
+.autolaunch-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.autolaunch-text {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.toggle-wrapper {
+  position: relative;
+  width: 40px;
+  height: 22px;
+}
+
+.toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-input:checked + .toggle-slider {
+  background: var(--accent);
+}
+
+.toggle-input:checked + .toggle-slider::after {
+  transform: translateX(18px);
+}
+
+.toggle-input:focus-visible + .toggle-slider {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .btn {
   font: inherit;
   cursor: pointer;

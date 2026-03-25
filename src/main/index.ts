@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog, Notification } from 'electron'
 import { join, dirname } from 'path'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
@@ -55,6 +55,28 @@ async function saveWorkedDates(dates: string[]): Promise<void> {
   const sorted = [...new Set(dates)].filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort()
   const csv = ['date', ...sorted].join('\n') + '\n'
   await writeFile(dataPath(), csv, 'utf-8')
+}
+
+function sendDailyReminder(): void {
+  const today = new Date()
+  const day = today.getDay()
+  if (day < 1 || day > 5) return
+
+  if (!Notification.isSupported()) return
+
+  const n = new Notification({
+    title: 'Time Tracker',
+    body: "Don't forget to register today's work!",
+    icon: icon
+  })
+  n.on('click', () => {
+    const win = BrowserWindow.getAllWindows()[0]
+    if (win) {
+      if (win.isMinimized()) win.restore()
+      win.focus()
+    }
+  })
+  n.show()
 }
 
 function createWindow(): void {
@@ -128,7 +150,18 @@ app.whenReady().then(() => {
   ipcMain.handle('settings:load', () => loadSettings())
   ipcMain.handle('settings:save', (_, key: string, value: unknown) => saveSetting(key, value))
 
+  ipcMain.handle('autolaunch:get', () => {
+    const settings = app.getLoginItemSettings()
+    return settings.openAtLogin
+  })
+
+  ipcMain.handle('autolaunch:set', (_, enabled: boolean) => {
+    app.setLoginItemSettings({ openAtLogin: enabled })
+  })
+
   createWindow()
+
+  sendDailyReminder()
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
