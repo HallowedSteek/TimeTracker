@@ -19,6 +19,13 @@ declare global {
       getAutoLaunch: () => Promise<boolean>
       setAutoLaunch: (enabled: boolean) => Promise<void>
       openDataFolder: () => Promise<{ ok: boolean; error?: string }>
+      showItemInFolder: (filePath: string) => Promise<{ ok: boolean }>
+      getPathsDefaults: () => Promise<{
+        documents: string
+        userData: string
+        osUserName: string
+      }>
+      pickSavePath: (defaultPath: string) => Promise<{ canceled: boolean; filePath?: string }>
     }
   }
 }

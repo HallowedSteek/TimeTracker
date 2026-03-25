@@ -1,9 +1,11 @@
 import { app, shell, BrowserWindow, ipcMain, dialog, Notification } from 'electron'
-import { join, dirname } from 'path'
+import { join, dirname, normalize } from 'path'
+import os from 'os'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { toNodeBuffer } from './bufferUtils'
 
 const DATA_FILE = 'worked-days.csv'
 const SETTINGS_FILE = 'settings.json'
@@ -123,7 +125,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle(
     'file:save-buffer',
-    async (_, defaultName: string, buffer: ArrayBuffer) => {
+    async (_, defaultName: string, buffer: unknown) => {
       const { canceled, filePath } = await dialog.showSaveDialog({
         defaultPath: defaultName,
         filters: [
@@ -132,17 +134,17 @@ app.whenReady().then(() => {
         ]
       })
       if (canceled || !filePath) return { ok: false as const }
-      await writeFile(filePath, Buffer.from(buffer))
+      await writeFile(filePath, toNodeBuffer(buffer))
       return { ok: true as const, filePath }
     }
   )
 
   ipcMain.handle(
     'file:save-buffer-to-path',
-    async (_, filePath: string, buffer: ArrayBuffer) => {
+    async (_, filePath: string, buffer: unknown) => {
       const dir = dirname(filePath)
       if (!existsSync(dir)) await mkdir(dir, { recursive: true })
-      await writeFile(filePath, Buffer.from(buffer))
+      await writeFile(filePath, toNodeBuffer(buffer))
       return { ok: true as const, filePath }
     }
   )
@@ -162,6 +164,26 @@ app.whenReady().then(() => {
   ipcMain.handle('shell:open-data-folder', async () => {
     const err = await shell.openPath(app.getPath('userData'))
     return err ? { ok: false as const, error: err } : { ok: true as const }
+  })
+
+  ipcMain.handle('shell:show-item-in-folder', (_, filePath: string) => {
+    if (!filePath || typeof filePath !== 'string') return { ok: false as const }
+    shell.showItemInFolder(normalize(filePath))
+    return { ok: true as const }
+  })
+
+  ipcMain.handle('paths:get-defaults', () => ({
+    documents: app.getPath('documents'),
+    userData: app.getPath('userData'),
+    osUserName: os.userInfo().username
+  }))
+
+  ipcMain.handle('dialog:pick-save-path', async (_, defaultPath: string) => {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      defaultPath,
+      filters: [{ name: 'Excel', extensions: ['xlsx'] }]
+    })
+    return { canceled, filePath }
   })
 
   createWindow()

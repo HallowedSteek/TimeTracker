@@ -18,7 +18,13 @@ const api = {
   setAutoLaunch: (enabled: boolean): Promise<void> =>
     ipcRenderer.invoke('autolaunch:set', enabled),
   openDataFolder: (): Promise<{ ok: boolean; error?: string }> =>
-    ipcRenderer.invoke('shell:open-data-folder')
+    ipcRenderer.invoke('shell:open-data-folder'),
+  showItemInFolder: (filePath: string): Promise<{ ok: boolean }> =>
+    ipcRenderer.invoke('shell:show-item-in-folder', filePath),
+  getPathsDefaults: (): Promise<{ documents: string; userData: string; osUserName: string }> =>
+    ipcRenderer.invoke('paths:get-defaults'),
+  pickSavePath: (defaultPath: string): Promise<{ canceled: boolean; filePath?: string }> =>
+    ipcRenderer.invoke('dialog:pick-save-path', defaultPath)
 }
 
 if (process.contextIsolated) {

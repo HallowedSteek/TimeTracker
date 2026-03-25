@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   monthRangeFrom,
   daysInMonth,
@@ -9,12 +9,11 @@ import {
   weekdayIndexMondayFirst,
   type YearMonth
 } from './dates'
-import { EUR_PER_DAY, MAX_DAYS_PER_MONTH, MIN_DAYS_PER_MONTH } from './constants'
-import { buildWorkbookBytes } from './exportExcel'
+import { EUR_PER_DAY, MAX_DAYS_PER_MONTH, MIN_DAYS_PER_MONTH, SETTINGS } from './constants'
+import ExportModal from './ExportModal'
+import Toast from './Toast'
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const EXPORT_PATH_KEY = 'exportDir'
-const START_DATE_KEY = 'startDate'
 
 function useWorkedSet() {
   const [worked, setWorked] = useState<Set<string>>(new Set())
@@ -185,20 +184,33 @@ export default function App() {
   const [startDate, setStartDate] = useState<string | undefined>(undefined)
   const [settingsReady, setSettingsReady] = useState(false)
   const [autoLaunch, setAutoLaunch] = useState(false)
-  const exportDirRef = useRef<string | null>(null)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [payRate, setPayRate] = useState(EUR_PER_DAY)
+  const [toast, setToast] = useState<{
+    message: string
+    kind: 'success' | 'error'
+    filePath?: string
+    fileName?: string
+  } | null>(null)
 
   useEffect(() => {
     window.api.loadSettings().then((s) => {
-      if (typeof s[EXPORT_PATH_KEY] === 'string') {
-        exportDirRef.current = s[EXPORT_PATH_KEY] as string
+      if (typeof s[SETTINGS.startDate] === 'string') {
+        setStartDate(s[SETTINGS.startDate] as string)
       }
-      if (typeof s[START_DATE_KEY] === 'string') {
-        setStartDate(s[START_DATE_KEY] as string)
+      if (typeof s[SETTINGS.payRateEUR] === 'number') {
+        setPayRate(s[SETTINGS.payRateEUR] as number)
       }
       setSettingsReady(true)
     })
     window.api.getAutoLaunch().then(setAutoLaunch)
   }, [])
+
+  useEffect(() => {
+    if (!toast) return
+    const id = window.setTimeout(() => setToast(null), 5200)
+    return () => window.clearTimeout(id)
+  }, [toast])
 
   const months = useMemo(() => monthRangeFrom(startDate), [startDate])
   const undone = useMemo(
@@ -209,7 +221,7 @@ export default function App() {
   const handleStartDateChange = async (value: string) => {
     const next = value || undefined
     setStartDate(next)
-    await window.api.saveSetting(START_DATE_KEY, next ?? null)
+    await window.api.saveSetting(SETTINGS.startDate, next ?? null)
   }
 
   const handleAutoLaunchChange = async (checked: boolean) => {
@@ -218,30 +230,10 @@ export default function App() {
   }
 
   const totalDays = worked.size
-  const totalEur = totalDays * EUR_PER_DAY
+  const totalEur = totalDays * payRate
 
   const now = new Date()
   const currentMonthWorked = countWorkedInMonth(worked, now.getFullYear(), now.getMonth())
-
-  const handleExport = async () => {
-    const buf = buildWorkbookBytes([...worked])
-    const name = `time-tracker-${today}.xlsx`
-
-    if (exportDirRef.current) {
-      const fullPath = exportDirRef.current.replace(/[\\/]$/, '') + '/' + name
-      const result = await window.api.saveFileToPath(fullPath, buf)
-      if (result.ok) return
-    }
-
-    const result = await window.api.saveFile(name, buf)
-    if (result.ok && result.filePath) {
-      const parts = result.filePath.replace(/\\/g, '/').split('/')
-      parts.pop()
-      const dir = parts.join('/')
-      exportDirRef.current = dir
-      await window.api.saveSetting(EXPORT_PATH_KEY, dir)
-    }
-  }
 
   if (!ready || !settingsReady) {
     return (
@@ -261,7 +253,7 @@ export default function App() {
       <header className="top-bar">
         <div>
           <h1 className="app-title">Time Tracker</h1>
-          <p className="app-sub">Freelance days · {EUR_PER_DAY} €/day</p>
+          <p className="app-sub">Freelance days · {payRate} €/day</p>
         </div>
         <div className="top-bar-actions">
           <label className="start-date-label">
@@ -286,7 +278,7 @@ export default function App() {
               <span className="toggle-slider" />
             </div>
           </label>
-          <button type="button" className="btn btn-primary" onClick={handleExport}>
+          <button type="button" className="btn btn-primary" onClick={() => setExportModalOpen(true)}>
             Export Excel
           </button>
         </div>
@@ -332,6 +324,29 @@ export default function App() {
           </div>
         ))}
       </main>
+
+      <ExportModal
+        open={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        worked={worked}
+        onToast={setToast}
+        onExported={async () => {
+          const s = await window.api.loadSettings()
+          if (typeof s[SETTINGS.payRateEUR] === 'number') {
+            setPayRate(s[SETTINGS.payRateEUR] as number)
+          }
+        }}
+      />
+
+      {toast ? (
+        <Toast
+          message={toast.message}
+          kind={toast.kind}
+          filePath={toast.filePath}
+          fileName={toast.fileName}
+          onDismiss={() => setToast(null)}
+        />
+      ) : null}
     </div>
   )
 }
